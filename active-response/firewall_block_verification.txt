@@ -1,0 +1,12 @@
+Firewall Block Verification Command
+
+Executed on Windows (Administrator PowerShell):
+
+netsh advfirewall firewall show rule name=all | findstr <Attacker-IP>
+
+Expected Output:
+
+RemoteIP: <Attacker-IP>/32
+
+This confirms Wazuh Active Response successfully created a firewall rule
+to block the attacker automatically.
