@@ -1,0 +1,85 @@
+==============================================
+RDP BRUTE-FORCE ATTACK SIMULATION
+==============================================
+
+Lab Environment:
+----------------------------------------------
+Attacker Machine: Kali Linux
+Victim Machine: Windows 10 VM
+Target Service: Remote Desktop Protocol (RDP)
+Detection Platform: Wazuh SIEM
+
+
+Objective:
+----------------------------------------------
+Simulate repeated failed login attempts to generate
+Windows Security Event ID 4625 logs.
+
+These logs are used to trigger:
+- Wazuh default rule (60122)
+- Custom aggregation rule (100020)
+
+
+Attack Command Used:
+----------------------------------------------
+
+xfreerdp3 /u:administrator /p:wrongpass /v:<WINDOWS_IP>
+
+
+Example:
+----------------------------------------------
+
+xfreerdp3 /u:administrator /p:wrongpass /v:192.168.56.101
+
+
+Attack Execution Steps:
+----------------------------------------------
+1. Execute the command.
+2. Enter an incorrect password.
+3. Repeat the command 6–7 times within 2 minutes.
+4. This generates multiple Windows failed login events.
+
+
+Logs Generated on Windows:
+----------------------------------------------
+Event ID: 4625
+Log Description: An account failed to log on
+Authentication Package: NTLM
+Logon Type: 3 or 10 (Network / Remote Interactive)
+
+
+Detection Flow:
+----------------------------------------------
+Multiple 4625 Events
+        ↓
+Wazuh Rule 60122 fires (Level 5)
+        ↓
+Custom Rule 100020 aggregates:
+5 failures in 120 seconds
+        ↓
+Level 10 Alert triggered
+        ↓
+Active Response executed (netsh.exe)
+        ↓
+Attacker IP blocked automatically
+
+
+Validation:
+----------------------------------------------
+On Windows (Administrator PowerShell):
+
+netsh advfirewall firewall show rule name=all | findstr <ATTACKER_IP>
+
+Expected Output:
+RemoteIP: <ATTACKER_IP>/32
+
+
+MITRE ATT&CK Mapping:
+----------------------------------------------
+Technique: T1110 – Brute Force
+Tactic: Credential Access
+
+
+==============================================
+End of Attack Simulation Documentation
+==============================================
